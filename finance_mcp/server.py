@@ -152,7 +152,6 @@ class FinanceDataProvider:
             # Get the most recent data
             hist = ticker.history(period="1d", interval="1m")
             if hist.empty:
-                # Fallback to daily data
                 hist = ticker.history(period="5d", interval="1d")
             
             if hist.empty:
@@ -445,9 +444,8 @@ async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent
         logger.error(error_msg)
         return [types.TextContent(type="text", text=json.dumps({"error": error_msg}))]
 
-async def main():
-    """Main function to run the MCP server"""
-    # Import here to avoid issues with event loop
+async def run_server():
+    """Async function to run the MCP server"""
     from mcp.server.stdio import stdio_server
     
     async with stdio_server() as (read_stream, write_stream):
@@ -464,5 +462,14 @@ async def main():
             ),
         )
 
+def main():
+    """Main entry point function - this is what gets called by the console script"""
+    asyncio.run(run_server())
+
+# Keep the old async main function for backwards compatibility but rename it
+async def async_main():
+    """Async main function (renamed from main to avoid conflicts)"""
+    await run_server()
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

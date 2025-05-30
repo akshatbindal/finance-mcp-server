@@ -19,7 +19,7 @@ def read_requirements():
 
 setup(
     name="finance-mcp-server",
-    version="1.0.0",
+    version="1.0.3",
     author="Akshat Bindal",
     author_email="akshatbindal01@gmail.com",
     description="MCP Server for Financial Data and Technical Indicators",
