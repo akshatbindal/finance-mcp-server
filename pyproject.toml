@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finance-mcp-server"
+dynamic = ["version"]
+description = "MCP Server for Financial Data and Technical Indicators"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Akshat Bindal", email = "akshatbindal01@gmail.com"},
+]
+keywords = ["mcp", "finance", "stocks", "technical-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial",
+]
+dependencies = [
+    "mcp",
+    "yfinance",
+    "pandas",
+    "ta",
+]
+
+[project.urls]
+Homepage = "https://github.com/akshatbindal/finance-mcp-server"
+Repository = "https://github.com/akshatbindal/finance-mcp-server"
+Issues = "https://github.com/akshatbindal/finance-mcp-server/issues"
+
+[project.scripts]
+finance-mcp-server = "finance_mcp.server:main"
