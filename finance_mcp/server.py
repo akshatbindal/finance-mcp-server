@@ -65,6 +65,14 @@ class FinanceDataProvider:
             'timestamp': datetime.now()
         }
     
+    def dict_keys_to_str(self, obj):
+        if isinstance(obj, dict):
+            return {str(k): self.dict_keys_to_str(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self.dict_keys_to_str(i) for i in obj]
+        else:
+            return obj
+    
     async def get_stock_info(self, symbol: str) -> Dict[str, Any]:
         """Get basic stock information"""
         try:
@@ -152,6 +160,7 @@ class FinanceDataProvider:
             # Get the most recent data
             hist = ticker.history(period="1d", interval="1m")
             if hist.empty:
+                # Fallback to daily data
                 hist = ticker.history(period="5d", interval="1d")
             
             if hist.empty:
@@ -274,6 +283,133 @@ class FinanceDataProvider:
             logger.error(f"Error calculating technical indicators for {symbol}: {str(e)}")
             raise Exception(f"Failed to calculate technical indicators: {str(e)}")
 
+    async def get_fundamental_data(self, symbol: str) -> Dict[str, Any]:
+        """Get fundamental financial data for a company"""
+        try:
+            # Check cache first
+            cached_data = self._get_cached_data(symbol, 'fundamentals')
+            if cached_data:
+                return cached_data
+
+            ticker = yf.Ticker(symbol)
+            
+            # Get financial statements
+            income_stmt = ticker.income_stmt
+            balance_sheet = ticker.balance_sheet
+            cash_flow = ticker.cashflow
+            
+            # Get key statistics
+            info = ticker.info
+            
+            fundamental_data = {
+                'symbol': symbol,
+                'company_name': info.get('longName', 'N/A'),
+                'sector': info.get('sector', 'N/A'),
+                'industry': info.get('industry', 'N/A'),
+                'market_cap': info.get('marketCap', 'N/A'),
+                'enterprise_value': info.get('enterpriseValue', 'N/A'),
+                'trailing_pe': info.get('trailingPE', 'N/A'),
+                'forward_pe': info.get('forwardPE', 'N/A'),
+                'peg_ratio': info.get('pegRatio', 'N/A'),
+                'price_to_book': info.get('priceToBook', 'N/A'),
+                'price_to_sales': info.get('priceToSalesTrailing12Months', 'N/A'),
+                'dividend_yield': info.get('dividendYield', 'N/A'),
+                'profit_margins': info.get('profitMargins', 'N/A'),
+                'operating_margins': info.get('operatingMargins', 'N/A'),
+                'return_on_equity': info.get('returnOnEquity', 'N/A'),
+                'return_on_assets': info.get('returnOnAssets', 'N/A'),
+                'revenue': info.get('totalRevenue', 'N/A'),
+                'revenue_per_share': info.get('revenuePerShare', 'N/A'),
+                'revenue_growth': info.get('revenueGrowth', 'N/A'),
+                'gross_profits': info.get('grossProfits', 'N/A'),
+                'free_cashflow': info.get('freeCashflow', 'N/A'),
+                'operating_cashflow': info.get('operatingCashflow', 'N/A'),
+                'earnings_growth': info.get('earningsGrowth', 'N/A'),
+                'earnings_quarterly_growth': info.get('earningsQuarterlyGrowth', 'N/A'),
+                'earnings_annual_growth': info.get('earningsAnnualGrowth', 'N/A'),
+                'earnings_yearly_growth': info.get('earningsYearlyGrowth', 'N/A'),
+                'earnings_annual': info.get('earningsAnnual', 'N/A'),
+                'earnings_yearly': info.get('earningsYearly', 'N/A'),
+                'earnings_quarterly': info.get('earningsQuarterly', 'N/A'),
+                'earnings_ttm': info.get('trailingEps', 'N/A'),
+                'earnings_forward': info.get('forwardEps', 'N/A'),
+                'earnings_ttm_growth': info.get('earningsGrowth', 'N/A'),
+                'earnings_forward_growth': info.get('earningsQuarterlyGrowth', 'N/A'),
+                'earnings_annual_growth': info.get('earningsAnnualGrowth', 'N/A'),
+                'earnings_yearly_growth': info.get('earningsYearlyGrowth', 'N/A'),
+                'earnings_quarterly_growth': info.get('earningsQuarterlyGrowth', 'N/A'),
+                'earnings_ttm_growth': info.get('earningsGrowth', 'N/A'),
+                'earnings_forward_growth': info.get('earningsQuarterlyGrowth', 'N/A'),
+                'earnings_annual_growth': info.get('earningsAnnualGrowth', 'N/A'),
+                'earnings_yearly_growth': info.get('earningsYearlyGrowth', 'N/A'),
+                'earnings_quarterly_growth': info.get('earningsQuarterlyGrowth', 'N/A'),
+                'financial_statements': {
+                    'income_statement': self.dict_keys_to_str(income_stmt.to_dict()) if not income_stmt.empty else {},
+                    'balance_sheet': self.dict_keys_to_str(balance_sheet.to_dict()) if not balance_sheet.empty else {},
+                    'cash_flow': self.dict_keys_to_str(cash_flow.to_dict()) if not cash_flow.empty else {}
+                }
+            }
+            
+            # Cache the data
+            self._set_cache_data(symbol, 'fundamentals', fundamental_data)
+            return fundamental_data
+            
+        except Exception as e:
+            logger.error(f"Error getting fundamental data for {symbol}: {str(e)}")
+            raise Exception(f"Failed to get fundamental data: {str(e)}")
+
+    async def get_company_news(self, symbol: str, limit: int = 10) -> Dict[str, Any]:
+        """Get latest news about a company"""
+        try:
+            # Check cache first (shorter cache for news)
+            cache_key = f"{symbol}_news"
+            if cache_key in self.cache:
+                cached_time = self.cache[cache_key].get('timestamp')
+                if cached_time and (datetime.now() - cached_time).seconds < 300:  # 5 minutes cache
+                    return self.cache[cache_key]['data']
+
+            ticker = yf.Ticker(symbol)
+            news = ticker.news
+
+            if not news:
+                return {
+                    'symbol': symbol,
+                    'news': [],
+                    'message': 'No news available'
+                }
+
+            # Process and format news items
+            formatted_news = []
+            for item in news[:limit]:
+                formatted_news.append({
+                    'title': item.get('title', 'N/A'),
+                    'publisher': item.get('publisher', 'N/A'),
+                    'link': item.get('link', 'N/A'),
+                    'published': item.get('providerPublishTime', 'N/A'),
+                    'type': item.get('type', 'N/A'),
+                    'summary': item.get('summary', 'N/A'),
+                    'related_tickers': item.get('relatedTickers', []),
+                    'sentiment': item.get('sentiment', 'N/A')
+                })
+
+            news_data = {
+                'symbol': symbol,
+                'timestamp': datetime.now().isoformat(),
+                'news': formatted_news
+            }
+
+            # Cache the data
+            self.cache[cache_key] = {
+                'data': news_data,
+                'timestamp': datetime.now()
+            }
+
+            return news_data
+
+        except Exception as e:
+            logger.error(f"Error getting news for {symbol}: {str(e)}")
+            raise Exception(f"Failed to get company news: {str(e)}")
+
 # Initialize the finance data provider
 finance_provider = FinanceDataProvider()
 
@@ -303,6 +439,18 @@ async def handle_list_resources() -> list[Resource]:
             uri="finance://stocks/indicators",
             name="Technical Indicators",
             description="Calculate technical indicators for stocks",
+            mimeType="application/json",
+        ),
+        Resource(
+            uri="finance://stocks/fundamentals",
+            name="Fundamental Data",
+            description="Get fundamental financial data for stocks",
+            mimeType="application/json",
+        ),
+        Resource(
+            uri="finance://stocks/news",
+            name="Company News",
+            description="Get latest news about companies",
             mimeType="application/json",
         ),
     ]
@@ -392,6 +540,39 @@ async def handle_list_tools() -> list[Tool]:
                 "required": ["symbol"]
             },
         ),
+        Tool(
+            name="get_fundamental_data",
+            description="Get fundamental financial data for a company",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol"
+                    }
+                },
+                "required": ["symbol"]
+            },
+        ),
+        Tool(
+            name="get_company_news",
+            description="Get latest news about a company",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock symbol"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of news items to return",
+                        "default": 10
+                    }
+                },
+                "required": ["symbol"]
+            },
+        ),
     ]
 
 @server.call_tool()
@@ -434,6 +615,24 @@ async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent
                 raise ValueError("Symbol is required")
             
             result = await finance_provider.calculate_technical_indicators(symbol, period, indicators)
+            return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
+        
+        elif name == "get_fundamental_data":
+            symbol = arguments.get("symbol", "").upper()
+            if not symbol:
+                raise ValueError("Symbol is required")
+            
+            result = await finance_provider.get_fundamental_data(symbol)
+            return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
+        
+        elif name == "get_company_news":
+            symbol = arguments.get("symbol", "").upper()
+            limit = arguments.get("limit", 10)
+            
+            if not symbol:
+                raise ValueError("Symbol is required")
+            
+            result = await finance_provider.get_company_news(symbol, limit)
             return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
         
         else:
