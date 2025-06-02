@@ -34,6 +34,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python 3.8+ support
 - Async/await support for non-blocking operations
 
+## [1.1.0] - 2025-06-02
+
+### Added
+- Major refactor and optimization of the Finance MCP Server backend
+- Full yfinance API utilization for all endpoints
+- New endpoints: options data, institutional holders, earnings calendar/history, analyst recommendations, financial statements, news, sector performance, dividend history
+- Expanded technical analysis: support/resistance, volatility, volume ratios, and more
+- Advanced caching system with per-endpoint durations (1 min to 1 hour)
+- Multi-threading enabled for yfinance
+- Improved error handling and logging for all endpoints
+- Data formatting improvements for DataFrames and API responses
+- Enhanced MCP tool schemas and documentation
+
+### Changed
+- All endpoints now return more detailed and structured data
+- Optimized historical data retrieval (auto-adjust, back-adjust, repair, actions)
+- Technical indicators now use the latest ta library features
+- Improved summary and stats for dividend and sector performance endpoints
+
+### Fixed
+- Graceful fallback for missing or partial data
+- Robust error isolation (one endpoint failure does not affect others)
+- Minor bug fixes in data conversion and formatting
+
 ## [Unreleased]
 
 ### Planned Features

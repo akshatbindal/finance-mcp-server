@@ -54,7 +54,7 @@ setup(
     project_urls={
         "Bug Reports": "https://github.com/akshatbindal/finance-mcp-server/issues",
         "Source": "https://github.com/akshatbindal/finance-mcp-server",
-        "Documentation": "https://github.com/akshatbindal/finance-mcp-server/blob/main/README.md",
+        "Documentation": "https://github.com/akshatbindal/finance-mcp-server/README.md",
     },
     include_package_data=True,
     zip_safe=False,

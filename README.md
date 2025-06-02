@@ -62,51 +62,53 @@ Once installed, you can ask Claude Desktop natural language questions like:
 - *"Compare the 50-day moving average of Google vs Amazon"*
 - *"What are the Bollinger Bands for Netflix right now?"*
 
-## 🔧 Available Tools
+## 🛠️ Available Tools
 
-### 📋 Stock Information
-Get comprehensive company data including:
-- Company name, sector, and industry
-- Market capitalization and trading metrics
-- P/E ratio, dividend yield, and beta
-- 52-week highs and lows
-- Volume and price data
+The Finance MCP Server exposes the following tools via the MCP protocol:
 
-```python
-# Example: Get Apple stock information
+- **get_comprehensive_stock_info**: Get detailed company, market, financial, and analyst data for any stock symbol.
+- **get_historical_data**: Retrieve historical price data with customizable period and interval, including splits/dividends.
+- **get_options_data**: Fetch options chain data for a stock, including calls and puts for multiple expiration dates.
+- **get_institutional_holders**: View institutional and major holders for a stock.
+- **get_earnings_calendar**: Access earnings calendar, history, and analyst price targets.
+- **get_analyst_recommendations**: Analyst recommendations, upgrades, and downgrades.
+- **get_financial_statements**: Download full income statement, balance sheet, and cash flow (annual/quarterly).
+- **get_news**: Latest news headlines and metadata for a stock.
+- **get_technical_analysis**: Professional indicators (SMA, EMA, RSI, MACD, Bollinger Bands, volume, support/resistance, etc).
+- **get_sector_performance**: Compare performance, volatility, and metrics for multiple stocks.
+- **get_dividend_history**: Dividend payment history, summary, and stats.
+
+### Example Tool Call (MCP JSON)
+```json
 {
-  "symbol": "AAPL",
-  "company_name": "Apple Inc.",
-  "market_cap": 3000000000000,
-  "current_price": 150.25,
-  "pe_ratio": 25.5
+  "tool": "get_comprehensive_stock_info",
+  "arguments": {"symbol": "AAPL"}
 }
 ```
 
-### 📊 Historical Data
-Retrieve historical stock data with flexible parameters:
-- **Periods**: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max
-- **Intervals**: 1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo
+### Caching & Performance
+- **Company info, news, options, holders, calendar, recommendations**: 5–60 min cache
+- **Real-time data**: 1 min cache
+- **Fundamentals**: 10 min cache
+- **Optimized yfinance usage**: Multi-threading enabled, batch requests, and error isolation
 
-### ⚡ Real-time Data
-Access current market data with:
-- Live price updates
-- Daily change and percentage change
-- Current volume and trading metrics
-- Automatic caching for performance
+### Error Handling
+- All endpoints return clear error messages on failure
+- Graceful fallback for missing or partial data
+- Logging for all exceptions and warnings
 
-### 📈 Technical Indicators
+### Technical Analysis
+- Moving averages (SMA 20/50/200, EMA 12/26)
+- RSI, MACD, Bollinger Bands, volume trends
+- Support/resistance, volatility, and more
 
-| Indicator | Description | Use Case |
-|-----------|-------------|----------|
-| **SMA** | Simple Moving Average (20, 50, 200) | Trend identification |
-| **EMA** | Exponential Moving Average (12, 26) | Responsive trend analysis |
-| **RSI** | Relative Strength Index | Overbought/oversold conditions |
-| **MACD** | Moving Average Convergence Divergence | Momentum and trend changes |
-| **Bollinger Bands** | Volatility and price envelope | Support/resistance levels |
-| **Stochastic** | Momentum oscillator | Entry/exit timing |
-| **ATR** | Average True Range | Volatility measurement |
-| **Volume SMA** | Volume moving average | Volume trend analysis |
+### Expanded Data
+- Options chain (calls/puts, OI, IV, last trade)
+- Institutional/major holders
+- Earnings calendar/history, analyst targets
+- Full financial statements (annual/quarterly)
+- News headlines, publisher, related tickers
+- Dividend history and summary
 
 ## 🛠️ Configuration
 
