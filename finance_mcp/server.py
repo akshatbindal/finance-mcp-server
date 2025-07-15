@@ -26,6 +26,9 @@ from mcp.types import (
 )
 import mcp.types as types
 
+from timezone_utils import create_timezone_info
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("finance-mcp")
@@ -221,6 +224,10 @@ class EnhancedFinanceDataProvider:
             
             # Cache the data
             self._set_cache_data(symbol, 'info', stock_info)
+
+            timing_info = create_timezone_info(symbol)
+            stock_info['timing'] = timing_info
+
             return stock_info
             
         except Exception as e:
