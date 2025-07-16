@@ -26,6 +26,9 @@ from mcp.types import (
 )
 import mcp.types as types
 
+from timezone_utils import create_timezone_info
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("finance-mcp")
@@ -221,6 +224,10 @@ class EnhancedFinanceDataProvider:
             
             # Cache the data
             self._set_cache_data(symbol, 'info', stock_info)
+
+            timing_info = create_timezone_info(symbol)
+            stock_info['timing'] = timing_info
+
             return stock_info
             
         except Exception as e:
@@ -346,7 +353,7 @@ class EnhancedFinanceDataProvider:
                                 'implied_volatility': self._safe_convert(call['impliedVolatility']),
                                 'in_the_money': bool(call.get('inTheMoney', False)),
                                 'contract_symbol': call.get('contractSymbol', 'N/A'),
-                                'last_trade_date': call.get('lastTradeDate', 'N/A')
+                                'last_trade_date': str(call.get('lastTradeDate', 'N/A'))
                             })
                     
                     # Process puts
@@ -365,7 +372,7 @@ class EnhancedFinanceDataProvider:
                                 'implied_volatility': self._safe_convert(put['impliedVolatility']),
                                 'in_the_money': bool(put.get('inTheMoney', False)),
                                 'contract_symbol': put.get('contractSymbol', 'N/A'),
-                                'last_trade_date': put.get('lastTradeDate', 'N/A')
+                                'last_trade_date': str(put.get('lastTradeDate', 'N/A'))
                             })
                     
                     options_data['options_chain'][exp_date] = {
